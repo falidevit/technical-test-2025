@@ -90,14 +90,25 @@
                 <div class="max-w-4xl mx-auto mt-8 space-y-6">
                     <!-- Current Weather -->
                     <div class="bg-white/20 backdrop-blur-md rounded-2xl shadow-xl p-8">
-                        <!-- City Name -->
+                        <!-- City Name and Temperature Toggle -->
                         <div class="text-center mb-6">
-                            <h2 class="text-3xl font-bold text-white mb-2">
-                                {{ $selectedCity['LocalizedName'] }}
-                            </h2>
-                            <p class="text-white/80">
-                                {{ $selectedCity['AdministrativeArea']['LocalizedName'] ?? '' }}, {{ $selectedCity['Country']['LocalizedName'] }}
-                            </p>
+                            <div class="flex justify-between items-start mb-4">
+                                <div></div>
+                                <div>
+                                    <h2 class="text-3xl font-bold text-white mb-2">
+                                        {{ $selectedCity['LocalizedName'] }}
+                                    </h2>
+                                    <p class="text-white/80">
+                                        {{ $selectedCity['AdministrativeArea']['LocalizedName'] ?? '' }}, {{ $selectedCity['Country']['LocalizedName'] }}
+                                    </p>
+                                </div>
+                                <button 
+                                    wire:click="toggleTemperatureUnit"
+                                    class="bg-white/20 hover:bg-white/30 text-white px-3 py-1 rounded-lg text-sm transition-colors"
+                                >
+                                    {{ $useCelsius ? '°F' : '°C' }}
+                                </button>
+                            </div>
                         </div>
 
                         <!-- Main Weather Info -->
@@ -215,6 +226,45 @@
                             @endforeach
                         </div>
                     </div>
+
+                    <!-- 5-Day Forecast -->
+                    @php $fiveDayForecast = $this->getFiveDayForecast(); @endphp
+                    @if(!empty($fiveDayForecast))
+                        <div class="bg-white/20 backdrop-blur-md rounded-2xl shadow-xl p-8">
+                            <h3 class="text-2xl font-bold text-white mb-6 text-center">5-Day Forecast</h3>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                                @foreach($fiveDayForecast as $index => $day)
+                                    <div class="bg-white/10 rounded-xl p-4 text-center">
+                                        <div class="text-white/80 text-sm font-medium mb-2">
+                                            {{ $index === 0 ? 'Today' : $day['dayName'] }}
+                                        </div>
+                                        <div class="text-white/60 text-xs mb-3">{{ $day['date'] }}</div>
+                                        
+                                        @if($day['dayIcon'])
+                                            <div class="flex justify-center mb-3">
+                                                <img src="{{ $this->getWeatherIconUrl($day['dayIcon']) }}" 
+                                                     alt="{{ $day['dayCondition'] }}"
+                                                     class="w-12 h-12">
+                                            </div>
+                                        @endif
+                                        
+                                        <div class="text-white text-lg font-semibold mb-1">{{ $day['maxTemp'] }}</div>
+                                        <div class="text-white/70 text-sm mb-3">{{ $day['minTemp'] }}</div>
+                                        <div class="text-white/90 text-xs mb-2">{{ $day['dayCondition'] }}</div>
+                                        <div class="w-full h-px bg-white/20 my-2"></div>
+                                        <div class="text-white/60 text-xs">
+                                            @if($day['dayRainProb'] !== null)
+                                                Pluie {{ $day['dayRainProb'] }}%
+                                            @else
+                                                --
+                                            @endif
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
                 </div>
             @endif
 
@@ -226,10 +276,46 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"></path>
                         </svg>
                         <h3 class="text-xl font-semibold text-white mb-2">Welcome to Weather App</h3>
-                        <p class="text-white/80">Search for any city to get current weather conditions and forecasts.</p>
+                        <p class="text-white/80 mb-4">Search for any city to get current weather conditions and forecasts.</p>
+                        <button 
+                            wire:click="getUserLocation"
+                            class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg text-sm transition-colors inline-flex items-center"
+                        >
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            Use My Location
+                        </button>
                     </div>
                 </div>
             @endif
         </div>
     </div>
+
+    <script>
+        document.addEventListener('livewire:initialized', () => {
+            Livewire.on('get-user-location', () => {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        function(position) {
+                            Livewire.dispatch('searchByCoordinates', {
+                                latitude: position.coords.latitude,
+                                longitude: position.coords.longitude
+                            });
+                        },
+                        function(error) {
+                            Livewire.dispatch('geolocation-error', { 
+                                error: 'Geolocation permission denied or not available.' 
+                            });
+                        }
+                    );
+                } else {
+                    Livewire.dispatch('geolocation-error', { 
+                        error: 'Geolocation is not supported by this browser.' 
+                    });
+                }
+            });
+        });
+    </script>
 </div>

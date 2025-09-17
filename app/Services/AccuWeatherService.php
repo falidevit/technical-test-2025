@@ -133,7 +133,7 @@ class AccuWeatherService
             try {
                 Log::info('Making AccuWeather daily forecast API call', ['location_key' => $locationKey]);
                 
-                $response = Http::timeout(10)->get("{$this->baseUrl}/forecasts/v1/daily/1day/{$locationKey}", [
+                $response = Http::timeout(10)->get("{$this->baseUrl}/forecasts/v1/daily/5day/{$locationKey}", [
                     'apikey' => $this->apiKey,
                     'language' => 'en-us',
                     'details' => 'true',

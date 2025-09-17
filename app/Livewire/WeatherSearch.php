@@ -14,6 +14,7 @@ class WeatherSearch extends Component
     public ?array $dailyForecast = null;
     public bool $isLoading = false;
     public ?string $error = null;
+    public bool $useCelsius = true;
     private bool $skipSearchOnUpdate = false;
 
     protected AccuWeatherService $weatherService;
@@ -32,21 +33,43 @@ class WeatherSearch extends Component
     private function loadDefaultCity()
     {
         try {
-            $cities = $this->weatherService->searchCities('Montreal');
-            if (!empty($cities)) {
-                // Find Montreal, Canada specifically
-                $montreal = collect($cities)->first(function ($city) {
-                    return $city['Country']['ID'] === 'CA' &&
-                           stripos($city['LocalizedName'], 'Montreal') !== false;
-                });
+            // Try different search terms for Montreal
+            $searchTerms = ['Montreal', 'Montréal', 'Montreal Canada'];
+            $montreal = null;
+            
+            foreach ($searchTerms as $term) {
+                $cities = $this->weatherService->searchCities($term);
+                if (!empty($cities)) {
+                    // Find Montreal, Canada specifically
+                    $montreal = collect($cities)->first(function ($city) {
+                        return $city['Country']['ID'] === 'CA' &&
+                               (stripos($city['LocalizedName'], 'Montreal') !== false || 
+                                stripos($city['LocalizedName'], 'Montréal') !== false);
+                    });
+                    
+                    if ($montreal) {
+                        break;
+                    }
+                }
+            }
 
-                if ($montreal) {
-                    $this->selectCity($montreal);
+            if ($montreal) {
+                $this->selectCity($montreal);
+            } else {
+                // Fallback to a generic major city if Montreal is not found
+                $cities = $this->weatherService->searchCities('Toronto');
+                if (!empty($cities)) {
+                    $toronto = collect($cities)->first(function ($city) {
+                        return $city['Country']['ID'] === 'CA';
+                    });
+                    if ($toronto) {
+                        $this->selectCity($toronto);
+                    }
                 }
             }
         } catch (\Exception $e) {
             // Silently fail, user can search manually
-            \Log::info('Failed to load default city', ['error' => $e->getMessage()]);
+            \Illuminate\Support\Facades\Log::info('Failed to load default city', ['error' => $e->getMessage()]);
         }
     }
 
@@ -78,10 +101,10 @@ class WeatherSearch extends Component
 
             // Debug log for troubleshooting
             if (empty($this->cities)) {
-                \Log::info('No cities found for search', ['search' => $this->search]);
+                \Illuminate\Support\Facades\Log::info('No cities found for search', ['search' => $this->search]);
             }
         } catch (\Exception $e) {
-            \Log::error('City search failed', ['search' => $this->search, 'error' => $e->getMessage()]);
+            \Illuminate\Support\Facades\Log::error('City search failed', ['search' => $this->search, 'error' => $e->getMessage()]);
             $this->error = 'Failed to search cities. Please try again.';
             $this->cities = [];
         } finally {
@@ -137,6 +160,54 @@ class WeatherSearch extends Component
         $this->loadDefaultCity();
     }
 
+    public function getUserLocation()
+    {
+        $this->dispatch('get-user-location');
+    }
+
+    #[\Livewire\Attributes\On('searchByCoordinates')]
+    public function searchByCoordinates($latitude, $longitude)
+    {
+        try {
+            $this->isLoading = true;
+            $this->error = null;
+
+            // Use AccuWeather's reverse geocoding
+            $response = \Illuminate\Support\Facades\Http::get("http://dataservice.accuweather.com/locations/v1/cities/geoposition/search", [
+                'apikey' => config('services.accuweather.api_key'),
+                'q' => "{$latitude},{$longitude}",
+                'language' => 'en-us'
+            ]);
+
+            if ($response->successful()) {
+                $cityData = $response->json();
+                if ($cityData) {
+                    $this->selectCity($cityData);
+                } else {
+                    $this->error = 'Could not find your location. Please search manually.';
+                }
+            } else {
+                $this->error = 'Failed to get your location. Please search manually.';
+            }
+        } catch (\Exception $e) {
+            $this->error = 'Geolocation error. Please search manually.';
+            \Illuminate\Support\Facades\Log::error('Geolocation error', ['error' => $e->getMessage()]);
+        } finally {
+            $this->isLoading = false;
+        }
+    }
+
+    #[\Livewire\Attributes\On('geolocation-error')]
+    public function handleGeolocationError($error)
+    {
+        $this->error = $error;
+    }
+
+    public function toggleTemperatureUnit()
+    {
+        $this->useCelsius = !$this->useCelsius;
+    }
+
     public function getTemperature()
     {
         if (!$this->currentWeather || !isset($this->currentWeather['Temperature']['Metric']['Value'])) {
@@ -144,9 +215,13 @@ class WeatherSearch extends Component
         }
 
         $celsius = $this->currentWeather['Temperature']['Metric']['Value'];
-        $fahrenheit = ($celsius * 9/5) + 32;
-
-        return round($celsius) . '°C / ' . round($fahrenheit) . '°F';
+        
+        if ($this->useCelsius) {
+            return round($celsius) . '°C';
+        } else {
+            $fahrenheit = ($celsius * 9/5) + 32;
+            return round($fahrenheit) . '°F';
+        }
     }
 
     public function getWindSpeed()
@@ -238,33 +313,80 @@ class WeatherSearch extends Component
         $forecast = $this->dailyForecast['DailyForecasts'][0];
         $minTemp = $forecast['Temperature']['Minimum']['Value'] ?? 0;
         $maxTemp = $forecast['Temperature']['Maximum']['Value'] ?? 0;
+        
+        $unit = $this->useCelsius ? '°C' : '°F';
+        if (!$this->useCelsius) {
+            $minTemp = ($minTemp * 9/5) + 32;
+            $maxTemp = ($maxTemp * 9/5) + 32;
+        }
 
         return [
             'morning' => [
-                'temp' => round(($minTemp + $maxTemp) / 2 - 3) . '°C',
+                'temp' => round(($minTemp + $maxTemp) / 2 - 3) . $unit,
                 'condition' => $forecast['Day']['IconPhrase'] ?? '--',
                 'rainProb' => $forecast['Day']['RainProbability'] ?? null,
                 'icon' => $forecast['Day']['Icon'] ?? null
             ],
             'afternoon' => [
-                'temp' => round($maxTemp) . '°C',
+                'temp' => round($maxTemp) . $unit,
                 'condition' => $forecast['Day']['IconPhrase'] ?? '--',
                 'rainProb' => $forecast['Day']['RainProbability'] ?? null,
                 'icon' => $forecast['Day']['Icon'] ?? null
             ],
             'evening' => [
-                'temp' => round(($minTemp + $maxTemp) / 2) . '°C',
+                'temp' => round(($minTemp + $maxTemp) / 2) . $unit,
                 'condition' => $forecast['Night']['IconPhrase'] ?? '--',
                 'rainProb' => $forecast['Night']['RainProbability'] ?? null,
                 'icon' => $forecast['Night']['Icon'] ?? null
             ],
             'night' => [
-                'temp' => round($minTemp) . '°C',
+                'temp' => round($minTemp) . $unit,
                 'condition' => $forecast['Night']['IconPhrase'] ?? '--',
                 'rainProb' => $forecast['Night']['RainProbability'] ?? null,
                 'icon' => $forecast['Night']['Icon'] ?? null
             ]
         ];
+    }
+
+    public function getFiveDayForecast()
+    {
+        if (!$this->dailyForecast || !isset($this->dailyForecast['DailyForecasts'])) {
+            return [];
+        }
+
+
+        $forecasts = [];
+        foreach ($this->dailyForecast['DailyForecasts'] as $index => $forecast) {
+            $minTemp = $forecast['Temperature']['Minimum']['Value'] ?? 0;
+            $maxTemp = $forecast['Temperature']['Maximum']['Value'] ?? 0;
+            
+            if (!$this->useCelsius) {
+                $minTemp = ($minTemp * 9/5) + 32;
+                $maxTemp = ($maxTemp * 9/5) + 32;
+            }
+            
+            $unit = $this->useCelsius ? '°C' : '°F';
+            
+            $date = $forecast['Date'] ?? null;
+            $dayName = $date ? \Carbon\Carbon::parse($date)->format('D') : 'Day ' . ($index + 1);
+            $dateFormatted = $date ? \Carbon\Carbon::parse($date)->format('M j') : 'Day ' . ($index + 1);
+            
+            
+            $forecasts[] = [
+                'date' => $dateFormatted,
+                'dayName' => $dayName,
+                'minTemp' => round($minTemp) . $unit,
+                'maxTemp' => round($maxTemp) . $unit,
+                'dayCondition' => $forecast['Day']['IconPhrase'] ?? '--',
+                'nightCondition' => $forecast['Night']['IconPhrase'] ?? '--',
+                'dayIcon' => $forecast['Day']['Icon'] ?? null,
+                'nightIcon' => $forecast['Night']['Icon'] ?? null,
+                'dayRainProb' => $forecast['Day']['RainProbability'] ?? null,
+                'nightRainProb' => $forecast['Night']['RainProbability'] ?? null
+            ];
+        }
+
+        return $forecasts;
     }
 
     public function getWeatherIconUrl($iconNumber)
