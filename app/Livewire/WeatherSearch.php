@@ -268,37 +268,6 @@ class WeatherSearch extends Component
         return round($km) . ' km / ' . round($miles) . ' mi';
     }
 
-    public function getDayData()
-    {
-        if (!$this->dailyForecast || !isset($this->dailyForecast['DailyForecasts'][0])) {
-            return [
-                'minTemp' => '--',
-                'maxTemp' => '--',
-                'dayCondition' => '--',
-                'nightCondition' => '--',
-                'dayRainProbability' => null,
-                'nightRainProbability' => null,
-                'dayIcon' => null,
-                'nightIcon' => null
-            ];
-        }
-
-        $forecast = $this->dailyForecast['DailyForecasts'][0];
-
-        return [
-            'minTemp' => isset($forecast['Temperature']['Minimum']['Value']) ?
-                round($forecast['Temperature']['Minimum']['Value']) . '°C' : '--',
-            'maxTemp' => isset($forecast['Temperature']['Maximum']['Value']) ?
-                round($forecast['Temperature']['Maximum']['Value']) . '°C' : '--',
-            'dayCondition' => $forecast['Day']['IconPhrase'] ?? '--',
-            'nightCondition' => $forecast['Night']['IconPhrase'] ?? '--',
-            'dayRainProbability' => $forecast['Day']['RainProbability'] ?? null,
-            'nightRainProbability' => $forecast['Night']['RainProbability'] ?? null,
-            'dayIcon' => $forecast['Day']['Icon'] ?? null,
-            'nightIcon' => $forecast['Night']['Icon'] ?? null
-        ];
-    }
-
     public function getFourPeriods()
     {
         if (!$this->dailyForecast || !isset($this->dailyForecast['DailyForecasts'][0])) {
@@ -354,7 +323,6 @@ class WeatherSearch extends Component
             return [];
         }
 
-
         $forecasts = [];
         foreach ($this->dailyForecast['DailyForecasts'] as $index => $forecast) {
             $minTemp = $forecast['Temperature']['Minimum']['Value'] ?? 0;
@@ -370,7 +338,6 @@ class WeatherSearch extends Component
             $date = $forecast['Date'] ?? null;
             $dayName = $date ? \Carbon\Carbon::parse($date)->format('D') : 'Day ' . ($index + 1);
             $dateFormatted = $date ? \Carbon\Carbon::parse($date)->format('M j') : 'Day ' . ($index + 1);
-            
             
             $forecasts[] = [
                 'date' => $dateFormatted,
