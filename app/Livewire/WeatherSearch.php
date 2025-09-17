@@ -224,6 +224,49 @@ class WeatherSearch extends Component
         ];
     }
 
+    public function getFourPeriods()
+    {
+        if (!$this->dailyForecast || !isset($this->dailyForecast['DailyForecasts'][0])) {
+            return [
+                'morning' => ['temp' => '--', 'condition' => '--', 'rainProb' => null, 'icon' => null],
+                'afternoon' => ['temp' => '--', 'condition' => '--', 'rainProb' => null, 'icon' => null],
+                'evening' => ['temp' => '--', 'condition' => '--', 'rainProb' => null, 'icon' => null],
+                'night' => ['temp' => '--', 'condition' => '--', 'rainProb' => null, 'icon' => null]
+            ];
+        }
+
+        $forecast = $this->dailyForecast['DailyForecasts'][0];
+        $minTemp = $forecast['Temperature']['Minimum']['Value'] ?? 0;
+        $maxTemp = $forecast['Temperature']['Maximum']['Value'] ?? 0;
+
+        return [
+            'morning' => [
+                'temp' => round(($minTemp + $maxTemp) / 2 - 3) . '°C',
+                'condition' => $forecast['Day']['IconPhrase'] ?? '--',
+                'rainProb' => $forecast['Day']['RainProbability'] ?? null,
+                'icon' => $forecast['Day']['Icon'] ?? null
+            ],
+            'afternoon' => [
+                'temp' => round($maxTemp) . '°C',
+                'condition' => $forecast['Day']['IconPhrase'] ?? '--',
+                'rainProb' => $forecast['Day']['RainProbability'] ?? null,
+                'icon' => $forecast['Day']['Icon'] ?? null
+            ],
+            'evening' => [
+                'temp' => round(($minTemp + $maxTemp) / 2) . '°C',
+                'condition' => $forecast['Night']['IconPhrase'] ?? '--',
+                'rainProb' => $forecast['Night']['RainProbability'] ?? null,
+                'icon' => $forecast['Night']['Icon'] ?? null
+            ],
+            'night' => [
+                'temp' => round($minTemp) . '°C',
+                'condition' => $forecast['Night']['IconPhrase'] ?? '--',
+                'rainProb' => $forecast['Night']['RainProbability'] ?? null,
+                'icon' => $forecast['Night']['Icon'] ?? null
+            ]
+        ];
+    }
+
     public function getWeatherIconUrl($iconNumber)
     {
         if (!$iconNumber) return null;

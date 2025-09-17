@@ -121,22 +121,44 @@
                         <!-- Weather Details Grid -->
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                             <div class="bg-white/10 rounded-xl p-4 text-center">
-                                <div class="text-white/70 text-sm mb-1">Humidity</div>
+                                <div class="flex items-center justify-center mb-2">
+                                    <svg class="w-5 h-5 text-white/70 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 14a6 6 0 110-12 6 6 0 010 12z"/>
+                                        <path d="M8 7a2 2 0 114 0v6a2 2 0 11-4 0V7z"/>
+                                    </svg>
+                                    <div class="text-white/70 text-sm">Humidity</div>
+                                </div>
                                 <div class="text-white font-semibold">{{ $this->getHumidity() }}%</div>
                             </div>
 
                             <div class="bg-white/10 rounded-xl p-4 text-center">
-                                <div class="text-white/70 text-sm mb-1">Wind Speed</div>
+                                <div class="flex items-center justify-center mb-2">
+                                    <svg class="w-5 h-5 text-white/70 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                    </svg>
+                                    <div class="text-white/70 text-sm">Wind Speed</div>
+                                </div>
                                 <div class="text-white font-semibold">{{ $this->getWindSpeed() }}</div>
                             </div>
 
                             <div class="bg-white/10 rounded-xl p-4 text-center">
-                                <div class="text-white/70 text-sm mb-1">UV Index</div>
+                                <div class="flex items-center justify-center mb-2">
+                                    <svg class="w-5 h-5 text-white/70 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M10 2L13.09 8.26L20 9L15 14L16.18 21L10 17.77L3.82 21L5 14L0 9L6.91 8.26L10 2Z"/>
+                                    </svg>
+                                    <div class="text-white/70 text-sm">UV Index</div>
+                                </div>
                                 <div class="text-white font-semibold">{{ $this->getUVIndex() }}</div>
                             </div>
 
                             <div class="bg-white/10 rounded-xl p-4 text-center">
-                                <div class="text-white/70 text-sm mb-1">Visibility</div>
+                                <div class="flex items-center justify-center mb-2">
+                                    <svg class="w-5 h-5 text-white/70 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 6.928 5 10.5 5c3.571 0 6.768 2.943 8.042 7-.274 1.013-.638 1.976-1.08 2.88"></path>
+                                    </svg>
+                                    <div class="text-white/70 text-sm">Visibility</div>
+                                </div>
                                 <div class="text-white font-semibold">{{ $this->getVisibility() }}</div>
                             </div>
                         </div>
@@ -154,65 +176,43 @@
                         <h3 class="text-2xl font-bold text-white mb-6 text-center">Today's Forecast</h3>
                         
                         @php
-                            $dayData = $this->getDayData();
+                            $periods = $this->getFourPeriods();
+                            $periodLabels = [
+                                'morning' => 'Matin',
+                                'afternoon' => 'Après-midi', 
+                                'evening' => 'Soir',
+                                'night' => 'Pendant la nuit'
+                            ];
                         @endphp
 
-                        <div class="grid grid-cols-2 gap-4 md:gap-6">
-                            <!-- Day -->
-                            <div class="bg-white/10 rounded-xl p-6 text-center">
-                                <div class="text-white/80 text-sm font-medium mb-3">Day</div>
-                                
-                                @if($dayData['dayIcon'])
-                                    <div class="flex justify-center mb-3">
-                                        <img src="{{ $this->getWeatherIconUrl($dayData['dayIcon']) }}" 
-                                             alt="{{ $dayData['dayCondition'] }}"
-                                             class="w-12 h-12">
-                                    </div>
-                                @endif
-                                
-                                <div class="text-3xl font-light text-white mb-2">{{ $dayData['maxTemp'] }}</div>
-                                <div class="text-white/90 text-sm mb-3">{{ $dayData['dayCondition'] }}</div>
-                                <div class="w-full h-px bg-white/20 my-3"></div>
-                                <div class="text-white/60 text-xs">
-                                    @if($dayData['dayRainProbability'] !== null)
-                                        Rain probability {{ $dayData['dayRainProbability'] }}%
-                                    @else
-                                        --
+                        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                            @foreach(['morning', 'afternoon', 'evening', 'night'] as $periodKey)
+                                @php
+                                    $period = $periods[$periodKey];
+                                @endphp
+                                <div class="bg-white/10 rounded-xl p-4 text-center">
+                                    <div class="text-white/80 text-xs font-medium mb-3">{{ $periodLabels[$periodKey] }}</div>
+                                    
+                                    @if($period['icon'])
+                                        <div class="flex justify-center mb-3">
+                                            <img src="{{ $this->getWeatherIconUrl($period['icon']) }}" 
+                                                 alt="{{ $period['condition'] }}"
+                                                 class="w-10 h-10">
+                                        </div>
                                     @endif
-                                </div>
-                            </div>
-
-                            <!-- Night -->
-                            <div class="bg-white/10 rounded-xl p-6 text-center">
-                                <div class="text-white/80 text-sm font-medium mb-3">Night</div>
-                                
-                                @if($dayData['nightIcon'])
-                                    <div class="flex justify-center mb-3">
-                                        <img src="{{ $this->getWeatherIconUrl($dayData['nightIcon']) }}" 
-                                             alt="{{ $dayData['nightCondition'] }}"
-                                             class="w-12 h-12">
+                                    
+                                    <div class="text-2xl font-light text-white mb-2">{{ $period['temp'] }}</div>
+                                    <div class="text-white/90 text-xs mb-3">{{ $period['condition'] }}</div>
+                                    <div class="w-full h-px bg-white/20 my-2"></div>
+                                    <div class="text-white/60 text-xs">
+                                        @if($period['rainProb'] !== null)
+                                            Pluie {{ $period['rainProb'] }}%
+                                        @else
+                                            --
+                                        @endif
                                     </div>
-                                @endif
-                                
-                                <div class="text-3xl font-light text-white mb-2">{{ $dayData['minTemp'] }}</div>
-                                <div class="text-white/90 text-sm mb-3">{{ $dayData['nightCondition'] }}</div>
-                                <div class="w-full h-px bg-white/20 my-3"></div>
-                                <div class="text-white/60 text-xs">
-                                    @if($dayData['nightRainProbability'] !== null)
-                                        Rain probability {{ $dayData['nightRainProbability'] }}%
-                                    @else
-                                        --
-                                    @endif
                                 </div>
-                            </div>
-                        </div>
-
-                        <!-- Temperature Range -->
-                        <div class="mt-6 text-center">
-                            <div class="text-white/70 text-sm">Temperature Range</div>
-                            <div class="text-white text-lg font-medium">
-                                {{ $dayData['minTemp'] }} - {{ $dayData['maxTemp'] }}
-                            </div>
+                            @endforeach
                         </div>
                     </div>
                 </div>
