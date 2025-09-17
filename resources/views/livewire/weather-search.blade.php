@@ -87,7 +87,8 @@
 
             <!-- Weather Display -->
             @if($currentWeather && $selectedCity)
-                <div class="max-w-2xl mx-auto mt-8">
+                <div class="max-w-4xl mx-auto mt-8 space-y-6">
+                    <!-- Current Weather -->
                     <div class="bg-white/20 backdrop-blur-md rounded-2xl shadow-xl p-8">
                         <!-- City Name -->
                         <div class="text-center mb-6">
@@ -139,9 +140,59 @@
                             </div>
                         @endif
                     </div>
+
+                    <!-- Daily Forecast -->
+                    <div class="bg-white/20 backdrop-blur-md rounded-2xl shadow-xl p-8">
+                        <h3 class="text-2xl font-bold text-white mb-6 text-center">Today's Forecast</h3>
+                        
+                        @php
+                            $dayData = $this->getDayData();
+                        @endphp
+
+                        <div class="grid grid-cols-2 gap-4 md:gap-6">
+                            <!-- Day -->
+                            <div class="bg-white/10 rounded-xl p-6 text-center">
+                                <div class="text-white/80 text-sm font-medium mb-2">Day</div>
+                                <div class="text-3xl font-light text-white mb-2">{{ $dayData['maxTemp'] }}</div>
+                                <div class="text-white/90 text-sm mb-2">{{ $dayData['dayCondition'] }}</div>
+                                <div class="w-full h-px bg-white/20 my-3"></div>
+                                <div class="text-white/60 text-xs">
+                                    @if($dayData['dayRainProbability'] !== null)
+                                        Rain probability {{ $dayData['dayRainProbability'] }}%
+                                    @else
+                                        --
+                                    @endif
+                                </div>
+                            </div>
+
+                            <!-- Night -->
+                            <div class="bg-white/10 rounded-xl p-6 text-center">
+                                <div class="text-white/80 text-sm font-medium mb-2">Night</div>
+                                <div class="text-3xl font-light text-white mb-2">{{ $dayData['minTemp'] }}</div>
+                                <div class="text-white/90 text-sm mb-2">{{ $dayData['nightCondition'] }}</div>
+                                <div class="w-full h-px bg-white/20 my-3"></div>
+                                <div class="text-white/60 text-xs">
+                                    @if($dayData['nightRainProbability'] !== null)
+                                        Rain probability {{ $dayData['nightRainProbability'] }}%
+                                    @else
+                                        --
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Temperature Range -->
+                        <div class="mt-6 text-center">
+                            <div class="text-white/70 text-sm">Temperature Range</div>
+                            <div class="text-white text-lg font-medium">
+                                {{ $dayData['minTemp'] }} - {{ $dayData['maxTemp'] }}
+                            </div>
+                        </div>
+                    </div>
                 </div>
             @endif
 
+            <!-- Welcome Message -->
             @if(!$selectedCity && !$search)
                 <div class="max-w-md mx-auto mt-16 text-center">
                     <div class="bg-white/20 backdrop-blur-md rounded-2xl shadow-xl p-8">

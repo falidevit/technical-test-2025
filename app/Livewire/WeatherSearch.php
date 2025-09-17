@@ -11,6 +11,7 @@ class WeatherSearch extends Component
     public array $cities = [];
     public ?array $selectedCity = null;
     public ?array $currentWeather = null;
+    public ?array $dailyForecast = null;
     public bool $isLoading = false;
     public ?string $error = null;
     private bool $skipSearchOnUpdate = false;
@@ -109,7 +110,9 @@ class WeatherSearch extends Component
         $this->error = null;
 
         try {
+            // Load both current weather and daily forecast
             $this->currentWeather = $this->weatherService->getCurrentWeather($locationKey);
+            $this->dailyForecast = $this->weatherService->getDailyForecast($locationKey);
             
             if (!$this->currentWeather) {
                 $this->error = 'Weather data not available for this location.';
@@ -117,6 +120,7 @@ class WeatherSearch extends Component
         } catch (\Exception $e) {
             $this->error = 'Failed to load weather data. Please try again.';
             $this->currentWeather = null;
+            $this->dailyForecast = null;
         } finally {
             $this->isLoading = false;
         }
@@ -127,6 +131,7 @@ class WeatherSearch extends Component
         $this->search = '';
         $this->cities = [];
         $this->error = null;
+        $this->dailyForecast = null;
         
         // Reload Montreal as default city
         $this->loadDefaultCity();
@@ -181,6 +186,33 @@ class WeatherSearch extends Component
         $miles = $km * 0.621371;
 
         return round($km) . ' km / ' . round($miles) . ' mi';
+    }
+
+    public function getDayData()
+    {
+        if (!$this->dailyForecast || !isset($this->dailyForecast['DailyForecasts'][0])) {
+            return [
+                'minTemp' => '--',
+                'maxTemp' => '--',
+                'dayCondition' => '--',
+                'nightCondition' => '--',
+                'dayRainProbability' => null,
+                'nightRainProbability' => null
+            ];
+        }
+
+        $forecast = $this->dailyForecast['DailyForecasts'][0];
+        
+        return [
+            'minTemp' => isset($forecast['Temperature']['Minimum']['Value']) ? 
+                round($forecast['Temperature']['Minimum']['Value']) . '°C' : '--',
+            'maxTemp' => isset($forecast['Temperature']['Maximum']['Value']) ? 
+                round($forecast['Temperature']['Maximum']['Value']) . '°C' : '--',
+            'dayCondition' => $forecast['Day']['IconPhrase'] ?? '--',
+            'nightCondition' => $forecast['Night']['IconPhrase'] ?? '--',
+            'dayRainProbability' => $forecast['Day']['RainProbability'] ?? null,
+            'nightRainProbability' => $forecast['Night']['RainProbability'] ?? null
+        ];
     }
 
     public function render()
