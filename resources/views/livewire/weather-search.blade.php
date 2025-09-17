@@ -132,45 +132,43 @@
                         <!-- Weather Details Grid -->
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                             <div class="bg-white/10 rounded-xl p-4 text-center">
-                                <div class="flex items-center justify-center mb-2">
-                                    <svg class="w-5 h-5 text-white/70 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 14a6 6 0 110-12 6 6 0 010 12z"/>
-                                        <path d="M8 7a2 2 0 114 0v6a2 2 0 11-4 0V7z"/>
-                                    </svg>
-                                    <div class="text-white/70 text-sm">Humidity</div>
+                                <div class="flex justify-center mb-3">
+                                    <img src="https://openweathermap.org/img/wn/09d@2x.png" 
+                                         alt="Humidity"
+                                         class="w-12 h-12 opacity-80">
                                 </div>
-                                <div class="text-white font-semibold">{{ $this->getHumidity() }}%</div>
+                                <div class="text-white/70 text-sm mb-1">Humidity</div>
+                                <div class="text-white font-semibold text-xl">{{ $this->getHumidity() }}%</div>
                             </div>
 
                             <div class="bg-white/10 rounded-xl p-4 text-center">
-                                <div class="flex items-center justify-center mb-2">
-                                    <svg class="w-5 h-5 text-white/70 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                    </svg>
-                                    <div class="text-white/70 text-sm">Wind Speed</div>
+                                <div class="flex justify-center mb-3">
+                                    <img src="https://openweathermap.org/img/wn/03d@2x.png" 
+                                         alt="Wind Speed"
+                                         class="w-12 h-12 opacity-80">
                                 </div>
-                                <div class="text-white font-semibold">{{ $this->getWindSpeed() }}</div>
+                                <div class="text-white/70 text-sm mb-1">Wind Speed</div>
+                                <div class="text-white font-semibold text-lg leading-tight">{{ $this->getWindSpeed() }}</div>
                             </div>
 
                             <div class="bg-white/10 rounded-xl p-4 text-center">
-                                <div class="flex items-center justify-center mb-2">
-                                    <svg class="w-5 h-5 text-white/70 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M10 2L13.09 8.26L20 9L15 14L16.18 21L10 17.77L3.82 21L5 14L0 9L6.91 8.26L10 2Z"/>
-                                    </svg>
-                                    <div class="text-white/70 text-sm">UV Index</div>
+                                <div class="flex justify-center mb-3">
+                                    <img src="https://openweathermap.org/img/wn/02d@2x.png" 
+                                         alt="UV Index"
+                                         class="w-12 h-12 opacity-80">
                                 </div>
-                                <div class="text-white font-semibold">{{ $this->getUVIndex() }}</div>
+                                <div class="text-white/70 text-sm mb-1">UV Index</div>
+                                <div class="text-white font-semibold text-xl">{{ $this->getUVIndex() }}</div>
                             </div>
 
                             <div class="bg-white/10 rounded-xl p-4 text-center">
-                                <div class="flex items-center justify-center mb-2">
-                                    <svg class="w-5 h-5 text-white/70 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 6.928 5 10.5 5c3.571 0 6.768 2.943 8.042 7-.274 1.013-.638 1.976-1.08 2.88"></path>
-                                    </svg>
-                                    <div class="text-white/70 text-sm">Visibility</div>
+                                <div class="flex justify-center mb-3">
+                                    <img src="https://openweathermap.org/img/wn/04d@2x.png" 
+                                         alt="Visibility"
+                                         class="w-12 h-12 opacity-80">
                                 </div>
-                                <div class="text-white font-semibold">{{ $this->getVisibility() }}</div>
+                                <div class="text-white/70 text-sm mb-1">Visibility</div>
+                                <div class="text-white font-semibold text-lg leading-tight">{{ $this->getVisibility() }}</div>
                             </div>
                         </div>
 
