@@ -115,6 +115,31 @@
 
     <script>
         document.addEventListener('livewire:initialized', () => {
+            // Auto-detect geolocation on page load
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        Livewire.dispatch('searchByCoordinates', {
+                            latitude: position.coords.latitude,
+                            longitude: position.coords.longitude
+                        });
+                    },
+                    function(error) {
+                        // Fallback to Montreal when geolocation fails
+                        Livewire.dispatch('fallback-to-montreal');
+                    },
+                    {
+                        timeout: 10000,
+                        enableHighAccuracy: false,
+                        maximumAge: 300000 // 5 minutes cache
+                    }
+                );
+            } else {
+                // Fallback to Montreal if geolocation not supported
+                Livewire.dispatch('fallback-to-montreal');
+            }
+
+            // Keep the manual location handler for the button
             Livewire.on('get-user-location', () => {
                 if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition(

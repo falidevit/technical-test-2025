@@ -26,8 +26,8 @@ class WeatherSearch extends Component
 
     public function mount()
     {
-        // Load Montreal by default
-        $this->loadDefaultCity();
+        // Wait for automatic geolocation or fallback event
+        // Don't load Montreal immediately
     }
 
     private function loadDefaultCity()
@@ -201,6 +201,12 @@ class WeatherSearch extends Component
     public function handleGeolocationError($error)
     {
         $this->error = $error;
+    }
+
+    #[\Livewire\Attributes\On('fallback-to-montreal')]
+    public function fallbackToMontreal()
+    {
+        $this->loadDefaultCity();
     }
 
     public function toggleTemperatureUnit()
