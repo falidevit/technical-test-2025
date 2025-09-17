@@ -102,6 +102,14 @@
 
                         <!-- Main Weather Info -->
                         <div class="text-center mb-8">
+                            @if($this->getCurrentWeatherIcon())
+                                <div class="flex justify-center mb-4">
+                                    <img src="{{ $this->getWeatherIconUrl($this->getCurrentWeatherIcon()) }}" 
+                                         alt="{{ $this->getWeatherText() }}"
+                                         class="w-20 h-20">
+                                </div>
+                            @endif
+                            
                             <div class="text-6xl font-light text-white mb-2">
                                 {{ $this->getTemperature() }}
                             </div>
@@ -152,9 +160,18 @@
                         <div class="grid grid-cols-2 gap-4 md:gap-6">
                             <!-- Day -->
                             <div class="bg-white/10 rounded-xl p-6 text-center">
-                                <div class="text-white/80 text-sm font-medium mb-2">Day</div>
+                                <div class="text-white/80 text-sm font-medium mb-3">Day</div>
+                                
+                                @if($dayData['dayIcon'])
+                                    <div class="flex justify-center mb-3">
+                                        <img src="{{ $this->getWeatherIconUrl($dayData['dayIcon']) }}" 
+                                             alt="{{ $dayData['dayCondition'] }}"
+                                             class="w-12 h-12">
+                                    </div>
+                                @endif
+                                
                                 <div class="text-3xl font-light text-white mb-2">{{ $dayData['maxTemp'] }}</div>
-                                <div class="text-white/90 text-sm mb-2">{{ $dayData['dayCondition'] }}</div>
+                                <div class="text-white/90 text-sm mb-3">{{ $dayData['dayCondition'] }}</div>
                                 <div class="w-full h-px bg-white/20 my-3"></div>
                                 <div class="text-white/60 text-xs">
                                     @if($dayData['dayRainProbability'] !== null)
@@ -167,9 +184,18 @@
 
                             <!-- Night -->
                             <div class="bg-white/10 rounded-xl p-6 text-center">
-                                <div class="text-white/80 text-sm font-medium mb-2">Night</div>
+                                <div class="text-white/80 text-sm font-medium mb-3">Night</div>
+                                
+                                @if($dayData['nightIcon'])
+                                    <div class="flex justify-center mb-3">
+                                        <img src="{{ $this->getWeatherIconUrl($dayData['nightIcon']) }}" 
+                                             alt="{{ $dayData['nightCondition'] }}"
+                                             class="w-12 h-12">
+                                    </div>
+                                @endif
+                                
                                 <div class="text-3xl font-light text-white mb-2">{{ $dayData['minTemp'] }}</div>
-                                <div class="text-white/90 text-sm mb-2">{{ $dayData['nightCondition'] }}</div>
+                                <div class="text-white/90 text-sm mb-3">{{ $dayData['nightCondition'] }}</div>
                                 <div class="w-full h-px bg-white/20 my-3"></div>
                                 <div class="text-white/60 text-xs">
                                     @if($dayData['nightRainProbability'] !== null)
